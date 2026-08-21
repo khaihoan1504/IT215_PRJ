@@ -1,21 +1,15 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
 
 from db.database import engine, Base
 from core.exceptions import custom_http_exception_handler, validation_exception_handler
 from routers import health, auth, users
-from routers.auth import limiter
 import models
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Event Management API")
-
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_exception_handler(StarletteHTTPException, custom_http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)

@@ -5,7 +5,6 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    JWT_REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080 # 7 ngày
 
     class Config:
         env_file = ".env"
