@@ -3,6 +3,7 @@ from models.user import User
 from models.event import Event
 from models.event_staff import EventStaff
 from models.event_task import EventTask
+from core.security import get_password_hash
 import models
 
 def seed_data():
@@ -11,8 +12,18 @@ def seed_data():
     
     try:
         if not db.query(User).first():
-            user1 = User(email="admin@example.com", hashed_password="hashed123", full_name="Admin")
-            user2 = User(email="staff@example.com", hashed_password="hashed456", full_name="Staff")
+            user1 = User(
+                email="admin@example.com", 
+                hashed_password=get_password_hash("123456"), 
+                full_name="Admin",
+                role="ADMIN"
+            )
+            user2 = User(
+                email="staff@example.com", 
+                hashed_password=get_password_hash("123456"), 
+                full_name="Staff",
+                role="USER"
+            )
             db.add_all([user1, user2])
             db.commit()
 
@@ -31,3 +42,6 @@ def seed_data():
         db.rollback()
     finally:
         db.close()
+
+if __name__ == "__main__":
+    seed_data()
