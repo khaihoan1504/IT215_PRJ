@@ -1,25 +1,22 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
 class EventBase(BaseModel):
-    title: str
+    title: str = Field(..., min_length=1, max_length=255, description="Tên sự kiện không được để trống")
     description: Optional[str] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
 
 class EventCreate(EventBase):
-    creator_id: int
+    pass
 
 class EventUpdate(BaseModel):
-    title: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
 
 class EventResponse(EventBase):
     id: int
     creator_id: int
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)

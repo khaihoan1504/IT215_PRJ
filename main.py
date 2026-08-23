@@ -4,7 +4,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from db.database import engine, Base
 from core.exceptions import custom_http_exception_handler, validation_exception_handler
-from routers import health, auth, users
+from routers import health, auth, users, events
 import models
 
 Base.metadata.create_all(bind=engine)
@@ -17,3 +17,4 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(events.router)
