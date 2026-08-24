@@ -1,6 +1,9 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
+
 from models.activity_log import ActivityLog
+
+
 def log_activity(
     db: Session,
     user_id: int,
@@ -20,6 +23,8 @@ def log_activity(
     db.commit()
     db.refresh(log)
     return log
+
+
 def get_event_activity_logs(
     db: Session,
     event_id: int,
@@ -38,3 +43,4 @@ def get_event_activity_logs(
         .limit(limit)
         .all()
     )
+

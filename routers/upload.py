@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, UploadFile, File, status
+
 from core.exceptions import CustomException
 from dependencies.auth import get_current_active_user
 from models.user import User
 from schemas.upload import FileUploadResponse
 from services.upload_service import save_upload_file
+
 router = APIRouter(prefix="/upload", tags=["Uploads"])
+
+
 @router.post(
     "",
     response_model=FileUploadResponse,
@@ -25,3 +29,4 @@ async def upload_file(
         url=result,
         message="Tải lên tệp tin thành công",
     )
+

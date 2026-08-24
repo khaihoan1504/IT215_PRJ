@@ -1,6 +1,8 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel, ConfigDict
+
+
 class ActivityLogResponse(BaseModel):
     id: int
     user_id: int
@@ -9,4 +11,6 @@ class ActivityLogResponse(BaseModel):
     target_id: Optional[int] = None
     detail: Optional[str] = None
     created_at: datetime
+
     model_config = ConfigDict(from_attributes=True)
+

@@ -1,2 +1,23 @@
+# Virtual Environment
 venv/
+.venv/
+env/
+
+# Python Cache
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment variables (chứa mật khẩu & secret keys)
+.env
+
+# Uploads directory (giữ lại .gitkeep)
+uploads/*
+!uploads/.gitkeep
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

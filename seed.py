@@ -5,6 +5,8 @@ from models.event_staff import EventStaff
 from models.event_task import EventTask
 from core.security import get_password_hash
 import models
+
+
 def seed_data():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
@@ -24,14 +26,17 @@ def seed_data():
             )
             db.add_all([user1, user2])
             db.commit()
+
             event = Event(title="Event 1", description="Description", creator_id=user1.id)
             db.add(event)
             db.commit()
+
             staff = EventStaff(event_id=event.id, user_id=user1.id, role="OWNER")
             db.add(staff)
             staff2 = EventStaff(event_id=event.id, user_id=user2.id, role="MEMBER")
             db.add(staff2)
             db.commit()
+
             task = EventTask(
                 event_id=event.id,
                 assignee_id=user2.id,
@@ -47,6 +52,9 @@ def seed_data():
         print(f"Seed error: {e}")
     finally:
         db.close()
+
+
 if __name__ == "__main__":
     seed_data()
     print("Seed data completed!")
+

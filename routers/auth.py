@@ -2,12 +2,22 @@ from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+
 from db.database import get_db
-from schemas.user import UserCreate, UserResponse, Token, UserLogin, RefreshTokenRequest
+from schemas.user import (
+    UserCreate,
+    UserResponse,
+    Token,
+    UserLogin,
+    RefreshTokenRequest,
+)
 from core.exceptions import CustomException
 from services import auth_service
+
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
 @router.post(
     "/register",
     response_model=UserResponse,
@@ -21,6 +31,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     if error_msg:
         raise CustomException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
     return new_user
+
+
 @router.post(
     "/login",
     response_model=Token,
@@ -35,6 +47,8 @@ def login(request: Request, user_in: UserLogin, db: Session = Depends(get_db)):
     if error_msg:
         raise CustomException(status_code=status_code, detail=error_msg)
     return token_data
+
+
 @router.post(
     "/refresh",
     response_model=Token,
@@ -47,3 +61,4 @@ def refresh_token(body: RefreshTokenRequest, db: Session = Depends(get_db)):
     if error_msg:
         raise CustomException(status_code=status_code, detail=error_msg)
     return token_data
+

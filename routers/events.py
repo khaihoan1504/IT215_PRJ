@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
+
 from db.database import get_db
 from core.exceptions import CustomException
 from dependencies.auth import get_current_active_user
@@ -9,7 +10,10 @@ from schemas.event import EventCreate, EventResponse, EventUpdate
 from schemas.event_staff import EventStaffCreate, EventStaffResponse
 from schemas.activity_log import ActivityLogResponse
 from services import event_service, activity_log_service
+
 router = APIRouter(prefix="/events", tags=["Events"])
+
+
 @router.post(
     "",
     response_model=EventResponse,
@@ -23,6 +27,8 @@ def create_event(
     current_user: User = Depends(get_current_active_user),
 ):
     return event_service.create_event(db, event_in, creator_id=current_user.id)
+
+
 @router.get(
     "",
     response_model=List[EventResponse],
@@ -40,6 +46,8 @@ def get_events(
     return event_service.get_user_events(
         db=db, user_id=current_user.id, search=search, skip=skip, limit=limit
     )
+
+
 @router.get(
     "/{event_id}",
     response_model=EventResponse,
@@ -63,6 +71,8 @@ def get_event(
             detail="Bạn không có quyền xem sự kiện này",
         )
     return event
+
+
 @router.patch(
     "/{event_id}",
     response_model=EventResponse,
@@ -87,6 +97,8 @@ def update_event(
             detail="Chỉ OWNER mới có quyền cập nhật sự kiện",
         )
     return event_service.update_event(db, event, event_in, user_id=current_user.id)
+
+
 @router.delete(
     "/{event_id}",
     status_code=status.HTTP_200_OK,
@@ -112,6 +124,8 @@ def delete_event(
         )
     event_service.delete_event(db, event, user_id=current_user.id)
     return {"detail": "Đã xóa sự kiện thành công (soft delete)"}
+
+
 @router.post(
     "/{event_id}/members",
     response_model=EventStaffResponse,
@@ -142,6 +156,8 @@ def add_member(
     if error_msg:
         raise CustomException(status_code=sc, detail=error_msg)
     return new_staff
+
+
 @router.get(
     "/{event_id}/members",
     response_model=List[EventStaffResponse],
@@ -161,6 +177,8 @@ def get_members(
             detail="Bạn không có quyền xem danh sách thành viên",
         )
     return event_service.get_event_members(db, event_id=event_id)
+
+
 @router.delete(
     "/{event_id}/members/{user_id}",
     status_code=status.HTTP_200_OK,
@@ -186,6 +204,8 @@ def remove_member(
     if not success:
         raise CustomException(status_code=sc, detail=error_msg)
     return {"detail": "Đã xóa thành viên thành công"}
+
+
 @router.get(
     "/{event_id}/activity-logs",
     response_model=List[ActivityLogResponse],
@@ -209,3 +229,4 @@ def get_activity_logs(
     return activity_log_service.get_event_activity_logs(
         db, event_id=event_id, skip=skip, limit=limit
     )
+

@@ -1,12 +1,16 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+
 from db.database import get_db
 from dependencies.auth import get_current_active_user, get_admin_user
 from models.user import User
 from schemas.user import UserResponse
 from services import user_service
+
 router = APIRouter(prefix="/users", tags=["Users"])
+
+
 @router.get(
     "/me",
     response_model=UserResponse,
@@ -15,6 +19,8 @@ router = APIRouter(prefix="/users", tags=["Users"])
 )
 def get_me(current_user: User = Depends(get_current_active_user)):
     return current_user
+
+
 @router.get(
     "",
     response_model=List[UserResponse],
@@ -33,3 +39,4 @@ def get_users(
     return user_service.get_users(
         db=db, search=search, is_active=is_active, skip=skip, limit=limit
     )
+

@@ -1,15 +1,19 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, status, Query, UploadFile, File
 from sqlalchemy.orm import Session
+
 from db.database import get_db
 from core.exceptions import CustomException
 from dependencies.auth import get_current_active_user
 from models.user import User
 from schemas.event_task import EventTaskCreate, EventTaskUpdate, EventTaskResponse
-from schemas.comment import CommentCreate, CommentUpdate, CommentResponse
+from schemas.comment import CommentCreate, CommentResponse
 from schemas.task_attachment import AttachmentResponse
 from services import event_task_service, event_service, comment_service, attachment_service
+
 router = APIRouter(tags=["Event Tasks"])
+
+
 def _check_event_membership(db: Session, event_id: int, user_id: int):
     staff = event_service.get_event_staff(db, event_id=event_id, user_id=user_id)
     if not staff:
@@ -18,6 +22,8 @@ def _check_event_membership(db: Session, event_id: int, user_id: int):
             detail="Bạn không phải thành viên của sự kiện này",
         )
     return staff
+
+
 def _check_event_owner(db: Session, event_id: int, user_id: int):
     staff = _check_event_membership(db, event_id, user_id)
     if staff.role != "OWNER":
@@ -26,6 +32,8 @@ def _check_event_owner(db: Session, event_id: int, user_id: int):
             detail="Chỉ OWNER của sự kiện mới có quyền thực hiện thao tác này",
         )
     return staff
+
+
 def _check_task_permission_for_update(db: Session, event_id: int, user_id: int, task):
     staff = _check_event_membership(db, event_id, user_id)
     if staff.role == "OWNER":
@@ -36,6 +44,8 @@ def _check_task_permission_for_update(db: Session, event_id: int, user_id: int, 
             detail="Bạn chỉ có thể cập nhật công việc được giao cho mình",
         )
     return staff
+
+
 @router.post(
     "/events/{event_id}/event-tasks",
     response_model=EventTaskResponse,
@@ -58,6 +68,8 @@ def create_task(
     if error_msg:
         raise CustomException(status_code=sc, detail=error_msg)
     return new_task
+
+
 @router.get(
     "/events/{event_id}/event-tasks",
     response_model=List[EventTaskResponse],
@@ -95,6 +107,8 @@ def list_tasks(
         skip=skip,
         limit=limit,
     )
+
+
 @router.get(
     "/event-tasks/{task_id}",
     response_model=EventTaskResponse,
@@ -111,6 +125,8 @@ def get_task(
         raise CustomException(status_code=status.HTTP_404_NOT_FOUND, detail="Công việc không tồn tại")
     _check_event_membership(db, task.event_id, current_user.id)
     return task
+
+
 @router.patch(
     "/event-tasks/{task_id}",
     response_model=EventTaskResponse,
@@ -132,6 +148,8 @@ def update_task(
     if error_msg:
         raise CustomException(status_code=sc, detail=error_msg)
     return updated_task
+
+
 @router.delete(
     "/event-tasks/{task_id}",
     status_code=status.HTTP_200_OK,
@@ -149,6 +167,8 @@ def delete_task(
     _check_event_owner(db, task.event_id, current_user.id)
     event_task_service.delete_task(db, task)
     return {"detail": "Đã xóa công việc thành công"}
+
+
 @router.patch(
     "/event-tasks/{task_id}/assign",
     response_model=EventTaskResponse,
@@ -170,6 +190,8 @@ def assign_task(
     if error_msg:
         raise CustomException(status_code=sc, detail=error_msg)
     return updated_task
+
+
 @router.post(
     "/event-tasks/{task_id}/comments",
     response_model=CommentResponse,
@@ -188,6 +210,8 @@ def create_comment(
         raise CustomException(status_code=status.HTTP_404_NOT_FOUND, detail="Công việc không tồn tại")
     _check_event_membership(db, task.event_id, current_user.id)
     return comment_service.create_comment(db, task_id=task_id, user_id=current_user.id, comment_in=comment_in)
+
+
 @router.get(
     "/event-tasks/{task_id}/comments",
     response_model=List[CommentResponse],
@@ -204,6 +228,8 @@ def list_comments(
         raise CustomException(status_code=status.HTTP_404_NOT_FOUND, detail="Công việc không tồn tại")
     _check_event_membership(db, task.event_id, current_user.id)
     return comment_service.get_comments_by_task(db, task_id=task_id)
+
+
 @router.delete(
     "/event-tasks/{task_id}/comments/{comment_id}",
     status_code=status.HTTP_200_OK,
@@ -230,6 +256,8 @@ def delete_comment(
         )
     comment_service.delete_comment(db, comment)
     return {"detail": "Đã xóa comment thành công"}
+
+
 @router.post(
     "/event-tasks/{task_id}/attachments",
     response_model=AttachmentResponse,
@@ -254,6 +282,8 @@ async def upload_attachment(
     if error_msg:
         raise CustomException(status_code=sc, detail=error_msg)
     return att
+
+
 @router.get(
     "/event-tasks/{task_id}/attachments",
     response_model=List[AttachmentResponse],
@@ -270,6 +300,8 @@ def list_attachments(
         raise CustomException(status_code=status.HTTP_404_NOT_FOUND, detail="Công việc không tồn tại")
     _check_event_membership(db, task.event_id, current_user.id)
     return attachment_service.get_attachments_by_task(db, task_id=task_id)
+
+
 @router.delete(
     "/event-tasks/{task_id}/attachments/{attachment_id}",
     status_code=status.HTTP_200_OK,
@@ -296,3 +328,4 @@ def delete_attachment(
         )
     attachment_service.delete_attachment(db, att)
     return {"detail": "Đã xóa file đính kèm thành công"}
+

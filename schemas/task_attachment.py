@@ -1,6 +1,8 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel, ConfigDict
+
+
 class AttachmentResponse(BaseModel):
     id: int
     task_id: int
@@ -11,4 +13,6 @@ class AttachmentResponse(BaseModel):
     content_type: Optional[str] = None
     file_size: Optional[int] = None
     created_at: datetime
+
     model_config = ConfigDict(from_attributes=True)
+
