@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, status, Query, UploadFile, File
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from db.database import get_db
@@ -8,10 +8,10 @@ from dependencies.auth import get_current_active_user
 from models.user import User
 from schemas.event_task import EventTaskCreate, EventTaskUpdate, EventTaskResponse
 from schemas.comment import CommentCreate, CommentResponse
-from schemas.task_attachment import AttachmentResponse
-from services import event_task_service, event_service, comment_service, attachment_service
+from services import event_task_service, event_service, comment_service
 
 router = APIRouter(tags=["Event Tasks"])
+
 
 
 def _check_event_membership(db: Session, event_id: int, user_id: int):
@@ -257,75 +257,4 @@ def delete_comment(
     comment_service.delete_comment(db, comment)
     return {"detail": "Đã xóa comment thành công"}
 
-
-@router.post(
-    "/event-tasks/{task_id}/attachments",
-    response_model=AttachmentResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Upload file đính kèm cho công việc",
-    description="Upload file đính kèm (kịch bản, hợp đồng, hình ảnh địa điểm) cho công việc sự kiện. "
-                "Kiểm tra loại file, kích thước và lưu đường dẫn. Chỉ thành viên sự kiện mới được upload.",
-)
-async def upload_attachment(
-    task_id: int,
-    file: UploadFile = File(..., description="Tệp đính kèm"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
-    task = event_task_service.get_task_by_id(db, task_id)
-    if not task:
-        raise CustomException(status_code=status.HTTP_404_NOT_FOUND, detail="Công việc không tồn tại")
-    _check_event_membership(db, task.event_id, current_user.id)
-    att, error_msg, sc = await attachment_service.save_task_attachment(
-        db, task_id=task_id, uploader_id=current_user.id, file=file
-    )
-    if error_msg:
-        raise CustomException(status_code=sc, detail=error_msg)
-    return att
-
-
-@router.get(
-    "/event-tasks/{task_id}/attachments",
-    response_model=List[AttachmentResponse],
-    summary="Danh sách file đính kèm",
-    description="Lấy danh sách tệp đính kèm của công việc. Chỉ thành viên sự kiện mới được xem.",
-)
-def list_attachments(
-    task_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
-    task = event_task_service.get_task_by_id(db, task_id)
-    if not task:
-        raise CustomException(status_code=status.HTTP_404_NOT_FOUND, detail="Công việc không tồn tại")
-    _check_event_membership(db, task.event_id, current_user.id)
-    return attachment_service.get_attachments_by_task(db, task_id=task_id)
-
-
-@router.delete(
-    "/event-tasks/{task_id}/attachments/{attachment_id}",
-    status_code=status.HTTP_200_OK,
-    summary="Xóa file đính kèm",
-    description="Xóa file đính kèm. Chỉ người upload hoặc OWNER sự kiện mới được xóa.",
-)
-def delete_attachment(
-    task_id: int,
-    attachment_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
-    task = event_task_service.get_task_by_id(db, task_id)
-    if not task:
-        raise CustomException(status_code=status.HTTP_404_NOT_FOUND, detail="Công việc không tồn tại")
-    att = attachment_service.get_attachment_by_id(db, attachment_id)
-    if not att or att.task_id != task_id:
-        raise CustomException(status_code=status.HTTP_404_NOT_FOUND, detail="File đính kèm không tồn tại")
-    staff = _check_event_membership(db, task.event_id, current_user.id)
-    if att.uploader_id != current_user.id and staff.role != "OWNER":
-        raise CustomException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bạn không có quyền xóa file đính kèm này",
-        )
-    attachment_service.delete_attachment(db, att)
-    return {"detail": "Đã xóa file đính kèm thành công"}
 

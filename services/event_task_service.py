@@ -48,11 +48,11 @@ def get_task_by_id(db: Session, task_id: int) -> Optional[EventTask]:
             joinedload(EventTask.assignee),
             joinedload(EventTask.event),
             joinedload(EventTask.comments),
-            joinedload(EventTask.attachments),
         )
         .filter(EventTask.id == task_id)
         .first()
     )
+
 
 
 def get_tasks_by_event(

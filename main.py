@@ -1,7 +1,5 @@
-import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -10,7 +8,7 @@ from slowapi.errors import RateLimitExceeded
 
 from db.database import engine, Base
 from core.exceptions import custom_http_exception_handler, validation_exception_handler
-from routers import health, auth, users, events, upload, event_tasks
+from routers import health, auth, users, events, event_tasks
 import models
 
 # Tự động khởi tạo database tables
@@ -28,7 +26,6 @@ app = FastAPI(
         "- **Events**: CRUD sự kiện (Soft Delete), quản lý thành viên ban tổ chức\n"
         "- **Event Tasks**: CRUD công việc, giao việc, workflow, search/filter/sort/phân trang\n"
         "- **Comments**: Trao đổi bình luận trên công việc sự kiện\n"
-        "- **Attachments**: Upload file đính kèm (kịch bản, hợp đồng, hình ảnh)\n"
         "- **Authorization**: Phân quyền RBAC (OWNER / MEMBER / ASSIGNEE)\n"
         "- **Activity Log**: Lịch sử thao tác quan trọng\n"
         "- **Rate Limiting**: Chống brute-force trên endpoint đăng nhập\n"
@@ -59,15 +56,11 @@ app.add_middleware(
 app.add_exception_handler(StarletteHTTPException, custom_http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
-# Thư mục lưu trữ file upload
-os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
 # Đăng ký Routers
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(events.router)
 app.include_router(event_tasks.router)
-app.include_router(upload.router)
+
 

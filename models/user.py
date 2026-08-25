@@ -21,6 +21,6 @@ class User(Base):
     staff_roles = relationship("EventStaff", back_populates="user")
     tasks = relationship("EventTask", back_populates="assignee")
     comments = relationship("TaskComment", back_populates="user")
-    attachments = relationship("TaskAttachment", back_populates="uploader")
     activity_logs = relationship("ActivityLog", back_populates="user")
+
 
